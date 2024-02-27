@@ -7,7 +7,7 @@ def sklearn_make_moons(n_points, sigma, rand_state = None):
     X, labels = sklearn.datasets.make_moons(n_points, shuffle=True, noise=0.1, random_state=rand_state)
     return X, labels
 
-def make_many_moons(n_moons, sigma, n_points, y_shift = 0.5, rand_state = None):
+def make_many_moons(n_points, n_moons, sigma, y_shift = 0.5, rand_state = None):
     # TODO: error checking for invalid parameters specified
 
     # seed if set
