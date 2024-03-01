@@ -8,6 +8,7 @@ from conftest import (
 
 # calculate a set of metrics for correctness
 def calc_correctness(pred_labels, ground_truth):
+    # TODO: add more measures of correctness
     return {
         'adjusted_rand_score': adjusted_rand_score(ground_truth, pred_labels),
     }
