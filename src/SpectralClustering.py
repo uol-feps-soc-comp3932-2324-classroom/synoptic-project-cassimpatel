@@ -1,9 +1,9 @@
-
-from sklearn.base import BaseEstimator, TransformerMixin, ClusterMixin
-from sklearn.pipeline import Pipeline
-from sklearn.metrics.pairwise import pairwise_distances
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.base import ClusterMixin
+from sklearn.pipeline import Pipeline
+from sklearn.metrics.pairwise import pairwise_distances
+
 
 class SpectralClustering(ClusterMixin):
 
@@ -49,7 +49,13 @@ class SpectralClustering(ClusterMixin):
     }
 
     # TODO: add default values for parameters
-    def __init__(self, num_clusters, standardisation, affinity, refinement, normalisation, decomposition, embedding, clustering, confidence):
+    def __init__(
+        self, num_clusters,
+        standardisation = 'none'   , affinity      = 'euclidean',
+        refinement      = 'eps'    , normalisation = 'standard',
+        decomposition   = 'dense'  , embedding     = 'single',
+        clustering      = 'k-means', confidence    = 'false'
+    ):
         super().__init__()
 
         # check valid parameters are provided
@@ -76,8 +82,6 @@ class SpectralClustering(ClusterMixin):
         # check combination of parameters provided is valid
 
         # TODO: build out pipeline (instead of if/else statements in fit)
-
-        return None
 
     # TODO: provide 
     def fit(self, X):

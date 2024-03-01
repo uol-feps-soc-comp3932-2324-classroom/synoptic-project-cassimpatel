@@ -29,7 +29,7 @@ def time_fn(fn, *args, **kwargs):
 @pytest.mark.parametrize('noise'    , INPUT_NOISES)
 def test_time_default(repeats, n_points, noise):
     X, _  = binary_moons_data(n_points, noise)
-    model = SpectralClustering(2, 'none', 'euclidean', 'eps', 'standard', 'dense', 'single', 'k-means', 'false')
+    model = SpectralClustering(2)
     t, _  = time_fn(model.fit, X)
 
     if t == MAX_TIMEOUT_SECS:

@@ -1,11 +1,10 @@
-# datasets
+# datasets and test results
 datasets/
-
-# test results
 results/
 
-# Mac metadata files
+# Mac metadata files and other config
 .DS_Store
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
