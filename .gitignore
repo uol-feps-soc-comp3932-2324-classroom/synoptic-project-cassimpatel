@@ -1,6 +1,9 @@
 # datasets
 datasets/
 
+# test results
+results/
+
 # Mac metadata files
 .DS_Store
 

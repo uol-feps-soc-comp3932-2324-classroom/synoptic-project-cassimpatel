@@ -93,7 +93,7 @@ class SpectralClustering(ClusterMixin):
         # step 2: affinity
         if self.affinity == 'euclidean':
             A = pairwise_distances(X, X, 'euclidean')
-            print(A)
+            # print(A)
             pass
         else:
             raise ValueError(f"Required module parameter has not yet been implemented")
@@ -110,7 +110,7 @@ class SpectralClustering(ClusterMixin):
             d = [np.sum(A[row,:]) for row in range(A.shape[0])]
             np.fill_diagonal(D, d)
 
-            print('A\n', A, 'D\n', D)
+            # print('A\n', A, 'D\n', D)
             pass
         else:
             raise ValueError(f"Required module parameter has not yet been implemented")
@@ -118,7 +118,7 @@ class SpectralClustering(ClusterMixin):
         # step 4: normalisation
         if self.normalisation == 'standard':
             L = D - A
-            print('L\n', L)
+            # print('L\n', L)
             pass
         else:
             raise ValueError(f"Required module parameter has not yet been implemented")
@@ -136,7 +136,7 @@ class SpectralClustering(ClusterMixin):
             eig_val = eig_val.argsort()
             z_eigvec = eig_vec[:,eig_val][:,1]
 
-            print('z\n', z_eigvec)
+            # print('z\n', z_eigvec)
             # z_eigvec[z_eigvec >= 0] = 1
             # z_eigvec[z_eigvec < 0] = 0
             pass
