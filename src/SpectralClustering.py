@@ -130,6 +130,8 @@ class SpectralClustering(ClusterMixin):
         # step 5: decomposition
         if self.decomposition == 'dense':
             eig_val, eig_vec = np.linalg.eig(L)
+            eig_val = eig_val.real
+            eig_vec = eig_vec.real
             
             pass
         else:
@@ -137,7 +139,7 @@ class SpectralClustering(ClusterMixin):
 
         # step 6: embedding
         if self.embedding == 'single':
-            eig_val = eig_val.argsort()
+            eig_val  = eig_val.argsort()
             z_eigvec = eig_vec[:,eig_val][:,1]
 
             # print('z\n', z_eigvec)
