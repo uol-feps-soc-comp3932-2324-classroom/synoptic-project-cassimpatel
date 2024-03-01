@@ -18,8 +18,9 @@ INPUT_NUM_MOONS = [3, 4, 5, 6]
 
 # where to store current run results
 RESULTS_DUMP_FOLDER     = f'./results/res_{datetime.datetime.now().strftime("%Y_%m_%d_T%H_%M_%S")}'
-RESULTS_TIMING_DOC      = f'{RESULTS_DUMP_FOLDER}/time.csv'
-RESULTS_CORRECTNESS_DOC = f'{RESULTS_DUMP_FOLDER}/correctness.csv'
+RESULTS_TIMING_DOC      = f'{RESULTS_DUMP_FOLDER}/results_times.csv'
+RESULTS_CORRECTNESS_DOC = f'{RESULTS_DUMP_FOLDER}/results_correctness.csv'
+RESULTS_REPORT_DOC      = f'{RESULTS_DUMP_FOLDER}/report.html'
 
 # complete set of modules available to test for SpectralClustering
 
@@ -36,6 +37,10 @@ def pytest_configure(config):
         f.write('n_points,noise,variant,method,time\n')
     with open(RESULTS_CORRECTNESS_DOC,'w') as f:
         f.write('n_points,noise,variant,method,adjusted_rand_index\n')
+
+    # set creation of HTML report
+    config.option.htmlpath = f'{RESULTS_DUMP_FOLDER}/report.html'
+    config.option.self_contained_html = True
 
 
 # generic handler to time a function call and capture result
