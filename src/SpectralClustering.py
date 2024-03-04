@@ -36,7 +36,7 @@ class SpectralClustering(ClusterMixin):
         },
         # type of laplacian generated: standard, normalised 
         'laplacian': {
-            'standard': laplacian.LaplacianTransformer(normalize=False),
+            'standard': laplacian.LaplacianTransformer(normalize = False),
         },
         # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
         'decomposition': {
@@ -48,7 +48,7 @@ class SpectralClustering(ClusterMixin):
         },
         # method for post-clustering: k-means, agglomerative, DBScan etc.
         'clustering': {
-            'k-means': clustering.ClusteringTransformer(method = 'k-means', num_clusters=2),
+            'k-means': clustering.ClusteringTransformer(method = 'k-means', num_clusters = 2),
         },
         # whether to provide measure of confidence: True, False
         'confidence': {
@@ -81,9 +81,6 @@ class SpectralClustering(ClusterMixin):
             val_options = SpectralClustering.__COMPONENT_OPTIONS[var].keys()
             if val not in val_options:
                 raise ValueError(f"Parameter `{var}` must be one of {list(val_options)}")
-
-        # set parameters
-        for (var, val) in varname_display_pairs:
             setattr(self, var, val)
 
         # check combination of parameters provided is valid
