@@ -3,7 +3,11 @@ import time
 import pytest
 import signal
 import datetime
+from importlib import reload
+import src
+ 
 from src.data_generation import sklearn_make_moons
+
 
 # environment vars for preventing long runtime and repeats
 NUM_REPEATS      = 3
@@ -28,6 +32,9 @@ RESULTS_REPORT_DOC      = f'{RESULTS_DUMP_FOLDER}/report.html'
 
 # setup before a testing session: make sure dump folders exist for results
 def pytest_configure(config):
+    # reload custom package installation
+    reload(src)
+    
     # make sure folders exist
     os.makedirs(os.path.dirname(RESULTS_TIMING_DOC     ), exist_ok=True)
     os.makedirs(os.path.dirname(RESULTS_CORRECTNESS_DOC), exist_ok=True)

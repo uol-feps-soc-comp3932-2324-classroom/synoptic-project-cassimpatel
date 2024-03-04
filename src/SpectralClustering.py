@@ -4,6 +4,7 @@ from sklearn.base import ClusterMixin
 from sklearn.pipeline import Pipeline
 from sklearn.metrics.pairwise import pairwise_distances
 
+from src.pipeline_transformers.NullTransformer import NullTransformer
 
 class SpectralClustering(ClusterMixin):
 
@@ -16,7 +17,7 @@ class SpectralClustering(ClusterMixin):
     __COMPONENT_OPTIONS = {
         'standardisation': {
             # data preprocessing: none, z-score, min-max
-            'none': None,
+            'none': NullTransformer(),
         },
         'affinity': {
             # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
@@ -48,7 +49,7 @@ class SpectralClustering(ClusterMixin):
         }
     }
 
-    # TODO: add default values for parameters
+    # TODO: add random state intialisation
     def __init__(
         self                       , num_clusters,
         standardisation = 'none'   , affinity   = 'euclidean',
@@ -77,11 +78,21 @@ class SpectralClustering(ClusterMixin):
         # set parameters
         for (var, val) in varname_display_pairs:
             setattr(self, var, val)
-            # self[''] = val
 
         # check combination of parameters provided is valid
 
         # TODO: build out pipeline (instead of if/else statements in fit)
+        pipeline_steps = [
+            ('standardisation', SpectralClustering.__COMPONENT_OPTIONS['standardisation'][standardisation]),
+            ('affinity'       , SpectralClustering.__COMPONENT_OPTIONS['affinity'       ][affinity       ]),
+            ('refinement'     , SpectralClustering.__COMPONENT_OPTIONS['refinement'     ][refinement     ]),
+            ('laplacian'      , SpectralClustering.__COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
+            ('decomposition'  , SpectralClustering.__COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
+            ('embedding'      , SpectralClustering.__COMPONENT_OPTIONS['embedding'      ][embedding      ]),
+            ('clustering'     , SpectralClustering.__COMPONENT_OPTIONS['clustering'     ][clustering     ]),
+            ('confidence'     , SpectralClustering.__COMPONENT_OPTIONS['confidence'     ][confidence     ]),
+        ]
+        self.pipeline = Pipeline(pipeline_steps)
 
     # TODO: provide 
     def fit(self, X):
