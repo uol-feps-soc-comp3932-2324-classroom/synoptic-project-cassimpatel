@@ -2,9 +2,11 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.base import ClusterMixin
 from sklearn.pipeline import Pipeline
-from sklearn.metrics.pairwise import pairwise_distances
 
-from src.pipeline_transformers.NullTransformer import NullTransformer
+from src.pipeline_transformers import (
+    affinity
+)
+
 
 class SpectralClustering(ClusterMixin):
 
@@ -17,11 +19,11 @@ class SpectralClustering(ClusterMixin):
     __COMPONENT_OPTIONS = {
         'standardisation': {
             # data preprocessing: none, z-score, min-max
-            'none': NullTransformer(),
+            'none': None,
         },
         'affinity': {
             # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
-            'euclidean': None,
+            'euclidean': affinity.AffinityTransformer('euclidean'),
         },
         'refinement': {
             # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
@@ -85,17 +87,22 @@ class SpectralClustering(ClusterMixin):
         pipeline_steps = [
             ('standardisation', SpectralClustering.__COMPONENT_OPTIONS['standardisation'][standardisation]),
             ('affinity'       , SpectralClustering.__COMPONENT_OPTIONS['affinity'       ][affinity       ]),
-            ('refinement'     , SpectralClustering.__COMPONENT_OPTIONS['refinement'     ][refinement     ]),
-            ('laplacian'      , SpectralClustering.__COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
-            ('decomposition'  , SpectralClustering.__COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
-            ('embedding'      , SpectralClustering.__COMPONENT_OPTIONS['embedding'      ][embedding      ]),
-            ('clustering'     , SpectralClustering.__COMPONENT_OPTIONS['clustering'     ][clustering     ]),
-            ('confidence'     , SpectralClustering.__COMPONENT_OPTIONS['confidence'     ][confidence     ]),
+            # ('refinement'     , SpectralClustering.__COMPONENT_OPTIONS['refinement'     ][refinement     ]),
+            # ('laplacian'      , SpectralClustering.__COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
+            # ('decomposition'  , SpectralClustering.__COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
+            # ('embedding'      , SpectralClustering.__COMPONENT_OPTIONS['embedding'      ][embedding      ]),
+            # ('clustering'     , SpectralClustering.__COMPONENT_OPTIONS['clustering'     ][clustering     ]),
+            # ('confidence'     , SpectralClustering.__COMPONENT_OPTIONS['confidence'     ][confidence     ]),
         ]
         self.pipeline = Pipeline(pipeline_steps)
 
     # TODO: provide 
     def fit(self, X):
+        x = self.pipeline.fit_transform(X)
+        print(X.shape, x.shape)
+        return
+
+
         # TODO: check X type, shape of X, save expected shape for future
         shape = X.shape
 
@@ -111,7 +118,8 @@ class SpectralClustering(ClusterMixin):
             # print(A)
             pass
         else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
+            pass
+            
 
         # step 3: refinement
         if self.refinement == 'eps':
