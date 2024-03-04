@@ -40,7 +40,10 @@ class SpectralClustering(ClusterMixin):
         },
         # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
         'decomposition': {
-            'dense': decomposition.DecompositionTransformer(method = 'dense'),
+            'dense'      : decomposition.DecompositionTransformer(method = 'dense'),
+            'dense_eigh' : decomposition.DecompositionTransformer(method = 'dense_eigh'),
+            'sparse'     : decomposition.DecompositionTransformer(method = 'sparse'),
+            'sparse_eigh': decomposition.DecompositionTransformer(method = 'sparse_eigh'),
         },
         # dimensionality of spectral embedding: single, more than one vec, dynamic selection of num_clusters
         'embedding': {

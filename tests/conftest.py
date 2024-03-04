@@ -18,7 +18,7 @@ MAX_TIMEOUT_SECS = 60 * 60
 RAND_SEED       = None
 # INPUT_SIZES     = [x for x in range(100, 3001, 100)]
 INPUT_SIZES     = [x for x in range(100, 500, 100)]
-INPUT_NOISES    = [0.00, 0.05, 0.10, 0.15]
+INPUT_NOISES    = [0.00, 0.05, 0.10, 0.15, 0.2]
 INPUT_NUM_MOONS = [3, 4, 5, 6]
 
 # where to store current run results
@@ -28,8 +28,7 @@ RESULTS_CORRECTNESS_DOC = f'{RESULTS_DUMP_FOLDER}/results_correctness.json'
 RESULTS_REPORT_DOC      = f'{RESULTS_DUMP_FOLDER}/report.html'
 
 # complete set of modules available to test for SpectralClustering
-
-
+DECOMP_METHODS = ['dense', 'dense_eigh', 'sparse', 'sparse_eigh']
 
 # setup before a testing session: make sure dump folders exist for results
 def pytest_configure(config):

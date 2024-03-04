@@ -13,9 +13,9 @@ class EmbeddingTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        # extract the last column as the eigenvalues, take rest as eigenvectors
-        eig_val = X[:,  -1]
-        eig_vec = X[:, :-1]
+        # extract the last row as the eigenvalues, take rest as eigenvectors
+        eig_val = X[-1 , :]
+        eig_vec = X[:-1, :]
 
         eig_val  = eig_val.argsort()
         z_eigvec = eig_vec[:,eig_val][:,[1]]
