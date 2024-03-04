@@ -26,7 +26,7 @@ class SpectralClustering(ClusterMixin):
             # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
             'eps': None,
         },
-        'normalisation': {
+        'laplacian': {
             # type of laplacian generated: standard, normalised 
             'standard': None,
         },
@@ -50,11 +50,11 @@ class SpectralClustering(ClusterMixin):
 
     # TODO: add default values for parameters
     def __init__(
-        self, num_clusters,
-        standardisation = 'none'   , affinity      = 'euclidean',
-        refinement      = 'eps'    , normalisation = 'standard',
-        decomposition   = 'dense'  , embedding     = 'single',
-        clustering      = 'k-means', confidence    = 'false'
+        self                       , num_clusters,
+        standardisation = 'none'   , affinity   = 'euclidean',
+        refinement      = 'eps'    , laplacian  = 'standard',
+        decomposition   = 'dense'  , embedding  = 'single',
+        clustering      = 'k-means', confidence = 'false'
     ):
         super().__init__()
 
@@ -63,7 +63,7 @@ class SpectralClustering(ClusterMixin):
             ('standardisation', standardisation),
             ('affinity'       , affinity       ),
             ('refinement'     , refinement     ),
-            ('normalisation'  , normalisation  ),
+            ('laplacian'      , laplacian      ),
             ('decomposition'  , decomposition  ),
             ('embedding'      , embedding      ),
             ('clustering'     , clustering     ),
@@ -120,7 +120,7 @@ class SpectralClustering(ClusterMixin):
             raise ValueError(f"Required module parameter has not yet been implemented")
 
         # step 4: normalisation
-        if self.normalisation == 'standard':
+        if self.laplacian == 'standard':
             L = D - A
             # print('L\n', L)
             pass
