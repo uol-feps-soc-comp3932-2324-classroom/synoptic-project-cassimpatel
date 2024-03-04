@@ -22,36 +22,36 @@ class SpectralClustering(ClusterMixin):
     # supported options for each pipeline component, note declared private to prevent mutation
     # TODO: add in supported methods for each part of pipeline
     __COMPONENT_OPTIONS = {
+        # data preprocessing: none, z-score, min-max
         'standardisation': {
-            # data preprocessing: none, z-score, min-max
             'none': NullTransformer.NullTransformer(),
         },
+        # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
         'affinity': {
-            # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
             'euclidean': affinity.AffinityTransformer('euclidean'),
         },
+        # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
         'refinement': {
-            # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
             'eps': refinement.EpsilonNNTransformer(0.4),
         },
+        # type of laplacian generated: standard, normalised 
         'laplacian': {
-            # type of laplacian generated: standard, normalised 
             'standard': laplacian.LaplacianTransformer(normalize=False),
         },
+        # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
         'decomposition': {
-            # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
             'dense': decomposition.DecompositionTransformer(method = 'dense'),
         },
+        # dimensionality of spectral embedding: single, more than one vec, dynamic selection of num_clusters
         'embedding': {
-            # dimensionality of spectral embedding: single, more than one vec, dynamic selection of num_clusters
             'single': embedding.EmbeddingTransformer(method = 'single'),
         },
+        # method for post-clustering: k-means, agglomerative, DBScan etc.
         'clustering': {
-            # method for post-clustering: k-means, agglomerative, DBScan etc.
             'k-means': clustering.ClusteringTransformer(method = 'k-means', num_clusters=2),
         },
+        # whether to provide measure of confidence: True, False
         'confidence': {
-            # whether to provide measure of confidence: True, False
             'false': NullTransformer.NullTransformer(),
         }
     }
