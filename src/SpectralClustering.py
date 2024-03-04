@@ -1,10 +1,15 @@
-import numpy as np
-from sklearn.cluster import KMeans
 from sklearn.base import ClusterMixin
 from sklearn.pipeline import Pipeline
 
 from src.pipeline_transformers import (
-    affinity
+    NullTransformer,
+    affinity,
+    refinement,
+    laplacian,
+    decomposition,
+    embedding,
+    clustering,
+    confidence,
 )
 
 
@@ -19,7 +24,7 @@ class SpectralClustering(ClusterMixin):
     __COMPONENT_OPTIONS = {
         'standardisation': {
             # data preprocessing: none, z-score, min-max
-            'none': None,
+            'none': NullTransformer.NullTransformer(),
         },
         'affinity': {
             # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
@@ -27,27 +32,27 @@ class SpectralClustering(ClusterMixin):
         },
         'refinement': {
             # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
-            'eps': None,
+            'eps': refinement.EpsilonNNTransformer(0.4),
         },
         'laplacian': {
             # type of laplacian generated: standard, normalised 
-            'standard': None,
+            'standard': laplacian.LaplacianTransformer(normalize=False),
         },
         'decomposition': {
             # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
-            'dense': None,
+            'dense': decomposition.DecompositionTransformer(method = 'dense'),
         },
         'embedding': {
             # dimensionality of spectral embedding: single, more than one vec, dynamic selection of num_clusters
-            'single': None,
+            'single': embedding.EmbeddingTransformer(method = 'single'),
         },
         'clustering': {
             # method for post-clustering: k-means, agglomerative, DBScan etc.
-            'k-means': None,
+            'k-means': clustering.ClusteringTransformer(method = 'k-means', num_clusters=2),
         },
         'confidence': {
             # whether to provide measure of confidence: True, False
-            'false': None,
+            'false': NullTransformer.NullTransformer(),
         }
     }
 
@@ -87,109 +92,22 @@ class SpectralClustering(ClusterMixin):
         pipeline_steps = [
             ('standardisation', SpectralClustering.__COMPONENT_OPTIONS['standardisation'][standardisation]),
             ('affinity'       , SpectralClustering.__COMPONENT_OPTIONS['affinity'       ][affinity       ]),
-            # ('refinement'     , SpectralClustering.__COMPONENT_OPTIONS['refinement'     ][refinement     ]),
-            # ('laplacian'      , SpectralClustering.__COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
-            # ('decomposition'  , SpectralClustering.__COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
-            # ('embedding'      , SpectralClustering.__COMPONENT_OPTIONS['embedding'      ][embedding      ]),
-            # ('clustering'     , SpectralClustering.__COMPONENT_OPTIONS['clustering'     ][clustering     ]),
-            # ('confidence'     , SpectralClustering.__COMPONENT_OPTIONS['confidence'     ][confidence     ]),
+            ('refinement'     , SpectralClustering.__COMPONENT_OPTIONS['refinement'     ][refinement     ]),
+            ('laplacian'      , SpectralClustering.__COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
+            ('decomposition'  , SpectralClustering.__COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
+            ('embedding'      , SpectralClustering.__COMPONENT_OPTIONS['embedding'      ][embedding      ]),
+            ('clustering'     , SpectralClustering.__COMPONENT_OPTIONS['clustering'     ][clustering     ]),
+            ('confidence'     , SpectralClustering.__COMPONENT_OPTIONS['confidence'     ][confidence     ]),
         ]
         self.pipeline = Pipeline(pipeline_steps)
 
     # TODO: provide 
     def fit(self, X):
-        x = self.pipeline.fit_transform(X)
-        print(X.shape, x.shape)
-        return
-
-
         # TODO: check X type, shape of X, save expected shape for future
         shape = X.shape
 
-        # step 1: standardisation
-        if self.standardisation == 'none':
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 2: affinity
-        if self.affinity == 'euclidean':
-            A = pairwise_distances(X, X, 'euclidean')
-            # print(A)
-            pass
-        else:
-            pass
-            
-
-        # step 3: refinement
-        if self.refinement == 'eps':
-            # TODO: remove hard-coded eps param
-            A[A < 0.4] = 1
-            A[A!= 1] = 0
-            np.fill_diagonal(A,0)
-
-            n = len(X)
-            D = np.zeros((n, n))
-            d = [np.sum(A[row,:]) for row in range(A.shape[0])]
-            np.fill_diagonal(D, d)
-
-            # print('A\n', A, 'D\n', D)
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 4: normalisation
-        if self.laplacian == 'standard':
-            L = D - A
-            # print('L\n', L)
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 5: decomposition
-        if self.decomposition == 'dense':
-            eig_val, eig_vec = np.linalg.eig(L)
-            eig_val = eig_val.real
-            eig_vec = eig_vec.real
-            
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 6: embedding
-        if self.embedding == 'single':
-            eig_val  = eig_val.argsort()
-            z_eigvec = eig_vec[:,eig_val][:,1]
-
-            # print('z\n', z_eigvec)
-            # z_eigvec[z_eigvec >= 0] = 1
-            # z_eigvec[z_eigvec < 0] = 0
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 7: clustering
-        if self.clustering == 'k-means':
-            real_values = z_eigvec.reshape(-1, 1)
-            # train a KMeans Clustering Model on the Fiedler eigenvector
-            kmeans_model = KMeans(n_clusters=2).fit(real_values)
-            self.labels_ = kmeans_model.labels_
-            return self.labels_
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 8: confidence
-        if self.confidence == 'false':
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # run pipeline
-
-        # set results to self.labels_
-
-        return self
+        self.labels_ = self.pipeline.fit_transform(X)
+        return self.labels_
 
     def predict(self, X):
         if self.confidence != 'k-means':
