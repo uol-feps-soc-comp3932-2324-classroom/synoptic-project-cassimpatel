@@ -2,7 +2,7 @@ import os
 import time
 import json
 import signal
-import datetime
+from datetime import datetime
 from importlib import reload
 
 import src
@@ -12,7 +12,8 @@ from src.data_generation import sklearn_make_moons
 
 # environment vars for preventing long runtime and repeats
 NUM_REPEATS      = 3
-MAX_TIMEOUT_SECS = 60 * 60
+# MAX_TIMEOUT_SECS = 60 * 60
+MAX_TIMEOUT_SECS = 60
 
 # input size/noise/num_clusters
 RAND_SEED       = None
@@ -22,7 +23,7 @@ INPUT_NOISES    = [0.00, 0.05, 0.10, 0.15, 0.2]
 INPUT_NUM_MOONS = [3, 4, 5, 6]
 
 # where to store current run results
-RESULTS_DUMP_FOLDER     = f'./results/res_{datetime.datetime.now().strftime("%Y_%m_%d_T%H_%M_%S")}'
+RESULTS_DUMP_FOLDER     = f'./results/res_{datetime.now().strftime("%Y_%m_%d_T%H_%M_%S")}'
 RESULTS_TIMING_DOC      = f'{RESULTS_DUMP_FOLDER}/results_times.json'
 RESULTS_CORRECTNESS_DOC = f'{RESULTS_DUMP_FOLDER}/results_correctness.json'
 RESULTS_REPORT_DOC      = f'{RESULTS_DUMP_FOLDER}/report.html'
@@ -85,9 +86,10 @@ def dump_time(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAULT'
             'experiment': experiment,
             'variant'   : variant,
             'time'      : time,
-            'timed_out' : "True" if time == MAX_TIMEOUT_SECS else "False"
+            'timed_out' : "True" if time == MAX_TIMEOUT_SECS else "False",
+            'log_time'  : datetime.now()
         }
-        entry_json = json.dumps(new_entry, sort_keys=True)
+        entry_json = json.dumps(new_entry, sort_keys=True, default=str)
         f.write(f'{entry_json}\n')
 
 # calculate a set of metrics for correctness
@@ -108,7 +110,8 @@ def dump_correctness(n_points, noise, timed_out = False, pred_labels = None, gro
         'noise'     : noise,
         'experiment': experiment,
         'variant'   : variant,
-        'timed_out' : "True" if timed_out else "False"
+        'timed_out' : "True" if timed_out else "False",
+        'log_time'  : datetime.now()
     }
 
     if not timed_out:
@@ -116,5 +119,5 @@ def dump_correctness(n_points, noise, timed_out = False, pred_labels = None, gro
         new_entry.update(metrics)
 
     with open(RESULTS_CORRECTNESS_DOC, 'a') as f:
-        entry_json = json.dumps(new_entry, sort_keys=True)
+        entry_json = json.dumps(new_entry, sort_keys=True, default=str)
         f.write(f'{entry_json}\n')
