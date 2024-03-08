@@ -74,3 +74,16 @@ class TestTimeCorrectness:
             pytest.skip('Timed out')
 
         dump_result(n_points, noise, t, 'Refinement', method, y_pred, y_true)
+
+    @pytest.mark.parametrize('method', PIPELINE_METHODS['standardisation'])
+    def test_standardisation(self, repeats, n_points, noise, method):
+        # generate data, fit model, dump to results
+        X, y_true  = binary_moons_data(n_points, noise)
+        model      = SpectralClustering(2, standardisation = method)
+        t, y_pred  = run_timeout_fn(model.fit, X)
+
+        if t == MAX_TIMEOUT_SECS:
+            dump_result(n_points, noise, t, 'Standardisation', method)
+            pytest.skip('Timed out')
+
+        dump_result(n_points, noise, t, 'Standardisation', method, y_pred, y_true)

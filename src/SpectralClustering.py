@@ -1,6 +1,8 @@
 from sklearn.base import ClusterMixin
 from sklearn.pipeline import Pipeline
 
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
 from src.pipeline_transformers import (
     NullTransformer,
     affinity,
@@ -12,7 +14,6 @@ from src.pipeline_transformers import (
     confidence,
 )
 
-
 class SpectralClustering(ClusterMixin):
 
     EPS  = 0.4
@@ -23,9 +24,11 @@ class SpectralClustering(ClusterMixin):
     # supported options for each pipeline component, note declared private to prevent mutation
     # TODO: add in supported methods for each part of pipeline
     COMPONENT_OPTIONS = {
-        # data preprocessing: none, z-score, min-max
+        # data preprocessing: none, standard, min-max
         'standardisation': {
-            'none': NullTransformer.NullTransformer(),
+            'none'    : NullTransformer.NullTransformer(),
+            'standard': StandardScaler(),
+            'min-max' : MinMaxScaler(),
         },
         # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
         'affinity': {
