@@ -6,6 +6,7 @@ from datetime import datetime
 from importlib import reload
 
 import src
+from src.SpectralClustering import SpectralClustering
 from sklearn.metrics import cluster
 from src.data_generation import sklearn_make_moons
 
@@ -29,8 +30,9 @@ RESULTS_REPORT_DOC  = f'{RESULTS_DUMP_FOLDER}/report.html'
 
 # complete set of modules available to test for SpectralClustering
 # TODO: configure this to read straight from the module itself
-DECOMP_METHODS    = ['dense', 'dense_eigh', 'sparse', 'sparse_eigh']
-LAPLACIAN_METHODS = ['standard', 'normalised']
+DECOMP_METHODS    = SpectralClustering.COMPONENT_OPTIONS['decomposition'].keys()
+LAPLACIAN_METHODS = SpectralClustering.COMPONENT_OPTIONS['laplacian'    ].keys()
+AFFINITY_METHODS  = SpectralClustering.COMPONENT_OPTIONS['affinity'     ].keys()
 
 # setup before a testing session: make sure dump folders exist for results
 def pytest_configure(config):

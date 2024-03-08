@@ -21,7 +21,7 @@ class SpectralClustering(ClusterMixin):
 
     # supported options for each pipeline component, note declared private to prevent mutation
     # TODO: add in supported methods for each part of pipeline
-    __COMPONENT_OPTIONS = {
+    COMPONENT_OPTIONS = {
         # data preprocessing: none, z-score, min-max
         'standardisation': {
             'none': NullTransformer.NullTransformer(),
@@ -29,6 +29,7 @@ class SpectralClustering(ClusterMixin):
         # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
         'affinity': {
             'euclidean': affinity.AffinityTransformer('euclidean'),
+            'manhattan': affinity.AffinityTransformer('manhattan'),
         },
         # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
         'refinement': {
@@ -82,7 +83,7 @@ class SpectralClustering(ClusterMixin):
             ('confidence'     , confidence     ),
         ]
         for (var, val) in varname_display_pairs:
-            val_options = SpectralClustering.__COMPONENT_OPTIONS[var].keys()
+            val_options = SpectralClustering.COMPONENT_OPTIONS[var].keys()
             if val not in val_options:
                 raise ValueError(f"Parameter `{var}` must be one of {list(val_options)}")
             setattr(self, var, val)
@@ -91,14 +92,14 @@ class SpectralClustering(ClusterMixin):
 
         # TODO: build out pipeline (instead of if/else statements in fit)
         pipeline_steps = [
-            ('standardisation', SpectralClustering.__COMPONENT_OPTIONS['standardisation'][standardisation]),
-            ('affinity'       , SpectralClustering.__COMPONENT_OPTIONS['affinity'       ][affinity       ]),
-            ('refinement'     , SpectralClustering.__COMPONENT_OPTIONS['refinement'     ][refinement     ]),
-            ('laplacian'      , SpectralClustering.__COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
-            ('decomposition'  , SpectralClustering.__COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
-            ('embedding'      , SpectralClustering.__COMPONENT_OPTIONS['embedding'      ][embedding      ]),
-            ('clustering'     , SpectralClustering.__COMPONENT_OPTIONS['clustering'     ][clustering     ]),
-            ('confidence'     , SpectralClustering.__COMPONENT_OPTIONS['confidence'     ][confidence     ]),
+            ('standardisation', SpectralClustering.COMPONENT_OPTIONS['standardisation'][standardisation]),
+            ('affinity'       , SpectralClustering.COMPONENT_OPTIONS['affinity'       ][affinity       ]),
+            ('refinement'     , SpectralClustering.COMPONENT_OPTIONS['refinement'     ][refinement     ]),
+            ('laplacian'      , SpectralClustering.COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
+            ('decomposition'  , SpectralClustering.COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
+            ('embedding'      , SpectralClustering.COMPONENT_OPTIONS['embedding'      ][embedding      ]),
+            ('clustering'     , SpectralClustering.COMPONENT_OPTIONS['clustering'     ][clustering     ]),
+            ('confidence'     , SpectralClustering.COMPONENT_OPTIONS['confidence'     ][confidence     ]),
         ]
         self.pipeline = Pipeline(pipeline_steps)
 

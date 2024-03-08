@@ -3,8 +3,9 @@ from src.SpectralClustering import SpectralClustering
 from conftest import (
     NUM_REPEATS, MAX_TIMEOUT_SECS, INPUT_SIZES, INPUT_NOISES,
     binary_moons_data, run_timeout_fn, dump_result,
-    DECOMP_METHODS, LAPLACIAN_METHODS
+    DECOMP_METHODS, LAPLACIAN_METHODS, AFFINITY_METHODS
 )
+
 
 @pytest.mark.parametrize('repeats'  , range(NUM_REPEATS))
 @pytest.mark.parametrize('n_points' , INPUT_SIZES)
@@ -52,3 +53,19 @@ def test_laplacian(repeats, n_points, noise, laplacian_method):
         pytest.skip('Timed out')
 
     dump_result(n_points, noise, t, experiment = 'Laplacian', variant = laplacian_method, pred_labels = y_pred, ground_truth = y_true)
+
+@pytest.mark.parametrize('repeats'         , range(NUM_REPEATS))
+@pytest.mark.parametrize('n_points'        , INPUT_SIZES)
+@pytest.mark.parametrize('noise'           , INPUT_NOISES)
+@pytest.mark.parametrize('affinity_method' , AFFINITY_METHODS)
+def test_affinity(repeats, n_points, noise, affinity_method):
+    # generate data, fit model, dump to results
+    X, y_true  = binary_moons_data(n_points, noise)
+    model      = SpectralClustering(2, affinity = affinity_method)
+    t, y_pred  = run_timeout_fn(model.fit, X)
+
+    if t == MAX_TIMEOUT_SECS:
+        dump_result(n_points, noise, t, experiment = 'Affinity', variant = affinity_method)
+        pytest.skip('Timed out')
+
+    dump_result(n_points, noise, t, experiment = 'Affinity', variant = affinity_method, pred_labels = y_pred, ground_truth = y_true)
