@@ -3,7 +3,7 @@ from src.SpectralClustering import SpectralClustering
 from conftest import (
     NUM_REPEATS, MAX_TIMEOUT_SECS, INPUT_SIZES, INPUT_NOISES,
     binary_moons_data, run_timeout_fn, dump_result,
-    DECOMP_METHODS, LAPLACIAN_METHODS, AFFINITY_METHODS
+    DECOMP_METHODS, LAPLACIAN_METHODS, AFFINITY_METHODS, REFINEMENT_METHODS
 )
 
 @pytest.mark.parametrize('repeats'  , range(NUM_REPEATS))
@@ -60,3 +60,16 @@ class TestTimeCorrectness:
             pytest.skip('Timed out')
 
         dump_result(n_points, noise, t, experiment = 'Affinity', variant = affinity_method, pred_labels = y_pred, ground_truth = y_true)
+
+    @pytest.mark.parametrize('refinement_method' , REFINEMENT_METHODS)
+    def test_refinement(self, repeats, n_points, noise, refinement_method):
+        # generate data, fit model, dump to results
+        X, y_true  = binary_moons_data(n_points, noise)
+        model      = SpectralClustering(2, refinement = refinement_method)
+        t, y_pred  = run_timeout_fn(model.fit, X)
+
+        if t == MAX_TIMEOUT_SECS:
+            dump_result(n_points, noise, t, experiment = 'Refinement', variant = refinement_method)
+            pytest.skip('Timed out')
+
+        dump_result(n_points, noise, t, experiment = 'Refinement', variant = refinement_method, pred_labels = y_pred, ground_truth = y_true)

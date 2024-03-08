@@ -18,6 +18,10 @@ class EmbeddingTransformer(BaseEstimator, TransformerMixin):
         eig_vec = X[:-1, :]
 
         eig_val  = eig_val.argsort()
+        
+        if eig_val[1] <= 0:
+            print("Warning: fiedler vector does not indicate connectivity")
+
         z_eigvec = eig_vec[:,eig_val][:,[1]]
 
         return z_eigvec

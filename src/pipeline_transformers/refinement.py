@@ -18,3 +18,25 @@ class EpsilonNNTransformer(BaseEstimator, TransformerMixin):
         
 
         return X
+
+class kNNTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, k):
+        self.k = k
+        pass
+    
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        n = len(X)
+
+        idx = np.argpartition(X, self.k + 1, axis=0)
+        idx = idx[:self.k+1, :]
+        
+        res = np.zeros((n, n))
+        for i in range(n):
+            idx_col = idx[:,i]
+            res[idx_col,i] = 1
+
+        np.fill_diagonal(res, 0)
+        return res

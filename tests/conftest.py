@@ -33,6 +33,7 @@ RESULTS_REPORT_DOC  = f'{RESULTS_DUMP_FOLDER}/report.html'
 DECOMP_METHODS    = SpectralClustering.COMPONENT_OPTIONS['decomposition'].keys()
 LAPLACIAN_METHODS = SpectralClustering.COMPONENT_OPTIONS['laplacian'    ].keys()
 AFFINITY_METHODS  = SpectralClustering.COMPONENT_OPTIONS['affinity'     ].keys()
+REFINEMENT_METHODS  = SpectralClustering.COMPONENT_OPTIONS['refinement'     ].keys()
 
 # setup before a testing session: make sure dump folders exist for results
 def pytest_configure(config):

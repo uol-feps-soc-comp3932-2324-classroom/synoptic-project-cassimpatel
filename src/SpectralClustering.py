@@ -15,8 +15,9 @@ from src.pipeline_transformers import (
 
 class SpectralClustering(ClusterMixin):
 
-    __EPS = 0.3
-    __k_NN = 5
+    EPS  = 0.4
+    k_NN = 20
+
     # TODO: add support for providing k/eps for NN graph generation, checking that they are provided when selecting appropriate methods
 
     # supported options for each pipeline component, note declared private to prevent mutation
@@ -33,7 +34,8 @@ class SpectralClustering(ClusterMixin):
         },
         # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
         'refinement': {
-            'eps': refinement.EpsilonNNTransformer(0.4),
+            'eps': refinement.EpsilonNNTransformer(EPS),
+            'knn': refinement.kNNTransformer(k_NN),
         },
         # type of laplacian generated: standard, normalised 
         'laplacian': {
