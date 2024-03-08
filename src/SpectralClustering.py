@@ -36,7 +36,8 @@ class SpectralClustering(ClusterMixin):
         },
         # type of laplacian generated: standard, normalised 
         'laplacian': {
-            'standard': laplacian.LaplacianTransformer(normalize = False),
+            'standard'  : laplacian.LaplacianTransformer(normalize = False),
+            'normalised': laplacian.LaplacianTransformer(normalize = True ),
         },
         # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
         'decomposition': {

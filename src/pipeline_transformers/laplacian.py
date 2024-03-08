@@ -5,8 +5,6 @@ import numpy as np
 
 class LaplacianTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, normalize=False):
-        if normalize != False:
-            raise ValueError(f"Required module parameter has not yet been implemented")
         self.normalize = normalize
     
     def fit(self, X, y=None):
@@ -14,9 +12,20 @@ class LaplacianTransformer(BaseEstimator, TransformerMixin):
 
     def transform(self, A, y=None):
         n = len(A)
+
+        # calculate the degree matrix
         D = np.zeros((n, n))
-        d = [np.sum(A[row,:]) for row in range(A.shape[0])]
+        d = [np.sum(A[row,:]) for row in range(n)]
         np.fill_diagonal(D, d)
+
+        # calculate simple unnormalised laplacian
         L = D - A
 
+        if not self.normalize:
+            return L
+
+        # normalise the laplacian: 
+        d2 = 1 / np.sqrt(np.diag(D))
+        np.fill_diagonal(D, d2)
+        L = np.matmul(np.matmul(D, L), D)
         return L

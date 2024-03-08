@@ -29,7 +29,8 @@ RESULTS_REPORT_DOC  = f'{RESULTS_DUMP_FOLDER}/report.html'
 
 # complete set of modules available to test for SpectralClustering
 # TODO: configure this to read straight from the module itself
-DECOMP_METHODS = ['dense', 'dense_eigh', 'sparse', 'sparse_eigh']
+DECOMP_METHODS    = ['dense', 'dense_eigh', 'sparse', 'sparse_eigh']
+LAPLACIAN_METHODS = ['standard', 'normalised']
 
 # setup before a testing session: make sure dump folders exist for results
 def pytest_configure(config):
