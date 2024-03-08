@@ -29,11 +29,7 @@ RESULTS_DUMP_DOC    = f'{RESULTS_DUMP_FOLDER}/results_dump.json'
 RESULTS_REPORT_DOC  = f'{RESULTS_DUMP_FOLDER}/report.html'
 
 # complete set of modules available to test for SpectralClustering
-# TODO: configure this to read straight from the module itself
-DECOMP_METHODS    = SpectralClustering.COMPONENT_OPTIONS['decomposition'].keys()
-LAPLACIAN_METHODS = SpectralClustering.COMPONENT_OPTIONS['laplacian'    ].keys()
-AFFINITY_METHODS  = SpectralClustering.COMPONENT_OPTIONS['affinity'     ].keys()
-REFINEMENT_METHODS  = SpectralClustering.COMPONENT_OPTIONS['refinement'     ].keys()
+PIPELINE_METHODS = {method : options.keys() for (method, options) in SpectralClustering.COMPONENT_OPTIONS.items()}
 
 # setup before a testing session: make sure dump folders exist for results
 def pytest_configure(config):

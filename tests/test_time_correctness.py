@@ -3,13 +3,14 @@ from src.SpectralClustering import SpectralClustering
 from conftest import (
     NUM_REPEATS, MAX_TIMEOUT_SECS, INPUT_SIZES, INPUT_NOISES,
     binary_moons_data, run_timeout_fn, dump_result,
-    DECOMP_METHODS, LAPLACIAN_METHODS, AFFINITY_METHODS, REFINEMENT_METHODS
+    PIPELINE_METHODS
 )
 
-@pytest.mark.parametrize('repeats'  , range(NUM_REPEATS))
-@pytest.mark.parametrize('n_points' , INPUT_SIZES)
-@pytest.mark.parametrize('noise'    , INPUT_NOISES)
+@pytest.mark.parametrize('repeats' , range(NUM_REPEATS))
+@pytest.mark.parametrize('n_points', INPUT_SIZES)
+@pytest.mark.parametrize('noise'   , INPUT_NOISES)
 class TestTimeCorrectness:
+
     def test_default(self, repeats, n_points, noise):
         # generate data, fit model, dump to results
         X, y_true  = binary_moons_data(n_points, noise)
@@ -22,54 +23,54 @@ class TestTimeCorrectness:
 
         dump_result(n_points, noise, t, pred_labels = y_pred, ground_truth = y_true)
 
-    @pytest.mark.parametrize('decomp_method', DECOMP_METHODS)
-    def test_decomposition(self, repeats, n_points, noise, decomp_method):
+    @pytest.mark.parametrize('method', PIPELINE_METHODS['decomposition'])
+    def test_decomposition(self, repeats, n_points, noise, method):
         # generate data, fit model, dump to results
         X, y_true  = binary_moons_data(n_points, noise)
-        model      = SpectralClustering(2, decomposition = decomp_method)
+        model      = SpectralClustering(2, decomposition = method)
         t, y_pred  = run_timeout_fn(model.fit, X)
 
         if t == MAX_TIMEOUT_SECS:
-            dump_result(n_points, noise, t, experiment = 'Decomposition', variant = decomp_method)
+            dump_result(n_points, noise, t, 'Decomposition', method)
             pytest.skip('Timed out')
 
-        dump_result(n_points, noise, t, experiment = 'Decomposition', variant = decomp_method, pred_labels = y_pred, ground_truth = y_true)
+        dump_result(n_points, noise, t, 'Decomposition', method, y_pred, y_true)
 
-    @pytest.mark.parametrize('laplacian_method', LAPLACIAN_METHODS)
-    def test_laplacian(self, repeats, n_points, noise, laplacian_method):
+    @pytest.mark.parametrize('method', PIPELINE_METHODS['laplacian'])
+    def test_laplacian(self, repeats, n_points, noise, method):
         # generate data, fit model, dump to results
         X, y_true  = binary_moons_data(n_points, noise)
-        model      = SpectralClustering(2, laplacian = laplacian_method)
+        model      = SpectralClustering(2, laplacian = method)
         t, y_pred  = run_timeout_fn(model.fit, X)
 
         if t == MAX_TIMEOUT_SECS:
-            dump_result(n_points, noise, t, experiment = 'Laplacian', variant = laplacian_method)
+            dump_result(n_points, noise, t, 'Laplacian', method)
             pytest.skip('Timed out')
 
-        dump_result(n_points, noise, t, experiment = 'Laplacian', variant = laplacian_method, pred_labels = y_pred, ground_truth = y_true)
+        dump_result(n_points, noise, t, 'Laplacian', method, y_pred, y_true)
 
-    @pytest.mark.parametrize('affinity_method' , AFFINITY_METHODS)
-    def test_affinity(self, repeats, n_points, noise, affinity_method):
+    @pytest.mark.parametrize('method', PIPELINE_METHODS['affinity'])
+    def test_affinity(self, repeats, n_points, noise, method):
         # generate data, fit model, dump to results
         X, y_true  = binary_moons_data(n_points, noise)
-        model      = SpectralClustering(2, affinity = affinity_method)
+        model      = SpectralClustering(2, affinity = method)
         t, y_pred  = run_timeout_fn(model.fit, X)
 
         if t == MAX_TIMEOUT_SECS:
-            dump_result(n_points, noise, t, experiment = 'Affinity', variant = affinity_method)
+            dump_result(n_points, noise, t, 'Affinity', method)
             pytest.skip('Timed out')
 
-        dump_result(n_points, noise, t, experiment = 'Affinity', variant = affinity_method, pred_labels = y_pred, ground_truth = y_true)
+        dump_result(n_points, noise, t, 'Affinity', method, y_pred, y_true)
 
-    @pytest.mark.parametrize('refinement_method' , REFINEMENT_METHODS)
-    def test_refinement(self, repeats, n_points, noise, refinement_method):
+    @pytest.mark.parametrize('method', PIPELINE_METHODS['refinement'])
+    def test_refinement(self, repeats, n_points, noise, method):
         # generate data, fit model, dump to results
         X, y_true  = binary_moons_data(n_points, noise)
-        model      = SpectralClustering(2, refinement = refinement_method)
+        model      = SpectralClustering(2, refinement = method)
         t, y_pred  = run_timeout_fn(model.fit, X)
 
         if t == MAX_TIMEOUT_SECS:
-            dump_result(n_points, noise, t, experiment = 'Refinement', variant = refinement_method)
+            dump_result(n_points, noise, t, 'Refinement', method)
             pytest.skip('Timed out')
 
-        dump_result(n_points, noise, t, experiment = 'Refinement', variant = refinement_method, pred_labels = y_pred, ground_truth = y_true)
+        dump_result(n_points, noise, t, 'Refinement', method, y_pred, y_true)
