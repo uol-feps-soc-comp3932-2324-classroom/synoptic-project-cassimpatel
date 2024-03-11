@@ -1,6 +1,7 @@
-# datasets and test results
+# datasets, test results, and secrets files
 datasets/
 results/
+SECRETS.py
 
 # Mac metadata files and other config
 .DS_Store

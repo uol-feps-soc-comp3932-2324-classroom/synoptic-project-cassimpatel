@@ -5,6 +5,11 @@ import signal
 from datetime import datetime
 from importlib import reload
 
+import smtplib
+from email.message import EmailMessage
+from email.utils import formataddr
+from SECRETS import GMAIL_EMAIL, GMAIL_PASSWORD, EMAIL_RECIPIENTS
+
 import src
 from src.SpectralClustering import SpectralClustering
 from sklearn.metrics import cluster
@@ -44,6 +49,30 @@ def pytest_configure(config):
     # set creation of HTML report
     config.option.htmlpath = f'{RESULTS_DUMP_FOLDER}/report.html'
     config.option.self_contained_html = True
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    Called after whole test run finished, right before
+    returning the exit status to the system.
+    """
+
+    # send an email of results
+    email = EmailMessage()
+    email["From"   ] = formataddr(('PYTEST: Results generator', GMAIL_EMAIL))
+    email["To"     ] = EMAIL_RECIPIENTS
+    email["Subject"] = f'Testing Script: Completed Run'
+    email.set_content(f'Run at: {RESULTS_DUMP_DOC}', subtype="html")
+    with open(RESULTS_DUMP_DOC, "r") as f:
+        email.add_attachment(
+            f.read(),
+            filename = "results_dump.json",
+        )
+    
+    smtp = smtplib.SMTP_SSL("smtp.gmail.com")
+    smtp.login(GMAIL_EMAIL, GMAIL_PASSWORD)
+    smtp.sendmail(GMAIL_EMAIL, EMAIL_RECIPIENTS, email.as_string())
+    smtp.quit()
 
 
 # generic handler to time a function call and capture result
