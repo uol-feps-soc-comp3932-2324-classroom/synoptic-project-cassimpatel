@@ -37,8 +37,9 @@ class SpectralClustering(ClusterMixin):
         },
         # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
         'refinement': {
-            'eps': refinement.EpsilonNNTransformer(EPS),
-            'knn': refinement.kNNTransformer(k_NN),
+            'eps' : refinement.EpsilonNNTransformer(EPS),
+            'knn' : refinement.kNNTransformer(k_NN),
+            'none': refinement.CompleteTransformer(),
         },
         # type of laplacian generated: standard, normalised 
         'laplacian': {

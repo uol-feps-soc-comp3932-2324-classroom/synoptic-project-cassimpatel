@@ -40,3 +40,19 @@ class kNNTransformer(BaseEstimator, TransformerMixin):
 
         np.fill_diagonal(res, 0)
         return res
+
+
+class CompleteTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+    
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        n = len(X)
+
+        res = np.ones((n, n))
+        np.fill_diagonal(res, 0)
+
+        return res

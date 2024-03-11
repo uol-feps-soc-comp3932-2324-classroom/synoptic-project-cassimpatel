@@ -15,7 +15,7 @@ class LaplacianTransformer(BaseEstimator, TransformerMixin):
 
         # calculate the degree matrix
         D = np.zeros((n, n))
-        d = [np.sum(A[row,:]) for row in range(n)]
+        d = np.count_nonzero(A, axis = 0)
         np.fill_diagonal(D, d)
 
         # calculate simple unnormalised laplacian
