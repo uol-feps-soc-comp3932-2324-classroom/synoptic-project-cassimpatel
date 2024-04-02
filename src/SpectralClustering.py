@@ -37,9 +37,10 @@ class SpectralClustering(ClusterMixin):
         },
         # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
         'refinement': {
-            'eps' : refinement_lib.EpsilonNNTransformer(DEFAULT_EPS),
-            'knn' : refinement_lib.kNNTransformer(DEFAULT_K),
-            'none': refinement_lib.CompleteTransformer(),
+            'eps'        : refinement_lib.EpsilonNNTransformer(DEFAULT_EPS),
+            'knn'        : refinement_lib.kNNTransformer(DEFAULT_K),
+            'mutual_knn' : refinement_lib.MutualKNNTransformer(DEFAULT_K),
+            'none'       : refinement_lib.CompleteTransformer(),
         },
         # type of laplacian generated: standard, normalised 
         'laplacian': {
@@ -98,8 +99,9 @@ class SpectralClustering(ClusterMixin):
         # TODO: check combination of parameters provided is valid
         # check if using eps refinement, eps param is valid
         # check if using k refinement, k is good
-        self.COMPONENT_OPTIONS['refinement']['eps'] = refinement_lib.EpsilonNNTransformer(eps)
-        self.COMPONENT_OPTIONS['refinement']['knn'] = refinement_lib.kNNTransformer(k)
+        self.COMPONENT_OPTIONS['refinement']['eps']        = refinement_lib.EpsilonNNTransformer(eps)
+        self.COMPONENT_OPTIONS['refinement']['knn']        = refinement_lib.kNNTransformer(k)
+        self.COMPONENT_OPTIONS['refinement']['mutual_knn'] = refinement_lib.MutualKNNTransformer(k)
 
 
         # TODO: build out pipeline (instead of if/else statements in fit)

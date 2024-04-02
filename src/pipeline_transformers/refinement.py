@@ -39,6 +39,34 @@ class kNNTransformer(BaseEstimator, TransformerMixin):
         np.fill_diagonal(res, 0)
         return res
 
+class MutualKNNTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, k):
+        self.k = k
+        pass
+    
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        n = len(X)
+
+        # calculate k-NN edge matrix as usual
+        idx = np.argpartition(X, self.k + 1, axis=0)
+        idx = idx[:self.k+1, :]
+        
+        res = np.zeros((n, n))
+        for i in range(n):
+            idx_col = idx[:,i]
+            res[idx_col,i] = 1
+
+        np.fill_diagonal(res, 0)
+
+        # use the transposition of A to enforce only mutual neighbours are taken
+        res = res + res.T
+        res = np.array(res == 2, dtype = np.float64)
+        np.fill_diagonal(res, 0)
+
+        return res
 
 class CompleteTransformer(BaseEstimator, TransformerMixin):
     def __init__(self):
