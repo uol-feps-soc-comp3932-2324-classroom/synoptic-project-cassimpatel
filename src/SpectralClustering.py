@@ -4,20 +4,20 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from src.pipeline_transformers import (
-    NullTransformer,
-    affinity,
-    refinement,
-    laplacian,
-    decomposition,
-    embedding,
-    clustering,
-    confidence,
+    NullTransformer                     ,
+    affinity        as affinity_lib     ,
+    refinement      as refinement_lib   ,
+    laplacian       as laplacian_lib    ,
+    decomposition   as decomposition_lib,
+    embedding       as embedding_lib    ,
+    clustering      as clustering_lib   ,
+    confidence      as confidence_lib   ,
 )
 
 class SpectralClustering(ClusterMixin):
 
-    EPS  = 0.4
-    k_NN = 20
+    DEFAULT_EPS = 0.4
+    DEFAULT_K   = 20
 
     # TODO: add support for providing k/eps for NN graph generation, checking that they are provided when selecting appropriate methods
 
@@ -32,34 +32,34 @@ class SpectralClustering(ClusterMixin):
         },
         # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
         'affinity': {
-            'euclidean': affinity.AffinityTransformer('euclidean'),
-            'manhattan': affinity.AffinityTransformer('manhattan'),
+            'euclidean': affinity_lib.AffinityTransformer('euclidean'),
+            'manhattan': affinity_lib.AffinityTransformer('manhattan'),
         },
         # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
         'refinement': {
-            'eps' : refinement.EpsilonNNTransformer(EPS),
-            'knn' : refinement.kNNTransformer(k_NN),
-            'none': refinement.CompleteTransformer(),
+            'eps' : refinement_lib.EpsilonNNTransformer(DEFAULT_EPS),
+            'knn' : refinement_lib.kNNTransformer(DEFAULT_K),
+            'none': refinement_lib.CompleteTransformer(),
         },
         # type of laplacian generated: standard, normalised 
         'laplacian': {
-            'standard'  : laplacian.LaplacianTransformer(normalize = False),
-            'normalised': laplacian.LaplacianTransformer(normalize = True ),
+            'standard'  : laplacian_lib.LaplacianTransformer(normalize = False),
+            'normalised': laplacian_lib.LaplacianTransformer(normalize = True ),
         },
         # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
         'decomposition': {
-            'dense'      : decomposition.DecompositionTransformer(method = 'dense'),
-            'dense_eigh' : decomposition.DecompositionTransformer(method = 'dense_eigh'),
-            'sparse'     : decomposition.DecompositionTransformer(method = 'sparse'),
-            'sparse_eigh': decomposition.DecompositionTransformer(method = 'sparse_eigh'),
+            'dense'      : decomposition_lib.DecompositionTransformer(method = 'dense'),
+            'dense_eigh' : decomposition_lib.DecompositionTransformer(method = 'dense_eigh'),
+            'sparse'     : decomposition_lib.DecompositionTransformer(method = 'sparse'),
+            'sparse_eigh': decomposition_lib.DecompositionTransformer(method = 'sparse_eigh'),
         },
         # dimensionality of spectral embedding: single, more than one vec, dynamic selection of num_clusters
         'embedding': {
-            'single': embedding.EmbeddingTransformer(method = 'single'),
+            'single': embedding_lib.EmbeddingTransformer(method = 'single'),
         },
         # method for post-clustering: k-means, agglomerative, DBScan etc.
         'clustering': {
-            'k-means': clustering.ClusteringTransformer(method = 'k-means', num_clusters = 2),
+            'k-means': clustering_lib.ClusteringTransformer(method = 'k-means', num_clusters = 2),
         },
         # whether to provide measure of confidence: True, False
         'confidence': {
@@ -69,11 +69,12 @@ class SpectralClustering(ClusterMixin):
 
     # TODO: add random state intialisation
     def __init__(
-        self                       , num_clusters,
-        standardisation = 'none'   , affinity   = 'euclidean',
-        refinement      = 'eps'    , laplacian  = 'standard',
-        decomposition   = 'dense'  , embedding  = 'single',
-        clustering      = 'k-means', confidence = 'false'
+        self                         , num_clusters,
+        standardisation = 'none'     , affinity   = 'euclidean',
+        refinement      = 'eps'      , laplacian  = 'standard',
+        decomposition   = 'dense'    , embedding  = 'single',
+        clustering      = 'k-means'  , confidence = 'false',
+        eps             = DEFAULT_EPS, k          = DEFAULT_K
     ):
         super().__init__()
 
@@ -94,18 +95,23 @@ class SpectralClustering(ClusterMixin):
                 raise ValueError(f"Parameter `{var}` must be one of {list(val_options)}")
             setattr(self, var, val)
 
-        # check combination of parameters provided is valid
+        # TODO: check combination of parameters provided is valid
+        # check if using eps refinement, eps param is valid
+        # check if using k refinement, k is good
+        self.COMPONENT_OPTIONS['refinement']['eps'] = refinement_lib.EpsilonNNTransformer(eps)
+        self.COMPONENT_OPTIONS['refinement']['knn'] = refinement_lib.kNNTransformer(k)
+
 
         # TODO: build out pipeline (instead of if/else statements in fit)
         pipeline_steps = [
-            ('standardisation', SpectralClustering.COMPONENT_OPTIONS['standardisation'][standardisation]),
-            ('affinity'       , SpectralClustering.COMPONENT_OPTIONS['affinity'       ][affinity       ]),
-            ('refinement'     , SpectralClustering.COMPONENT_OPTIONS['refinement'     ][refinement     ]),
-            ('laplacian'      , SpectralClustering.COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
-            ('decomposition'  , SpectralClustering.COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
-            ('embedding'      , SpectralClustering.COMPONENT_OPTIONS['embedding'      ][embedding      ]),
-            ('clustering'     , SpectralClustering.COMPONENT_OPTIONS['clustering'     ][clustering     ]),
-            ('confidence'     , SpectralClustering.COMPONENT_OPTIONS['confidence'     ][confidence     ]),
+            ('standardisation', self.COMPONENT_OPTIONS['standardisation'][standardisation]),
+            ('affinity'       , self.COMPONENT_OPTIONS['affinity'       ][affinity       ]),
+            ('refinement'     , self.COMPONENT_OPTIONS['refinement'     ][refinement     ]),
+            ('laplacian'      , self.COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
+            ('decomposition'  , self.COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
+            ('embedding'      , self.COMPONENT_OPTIONS['embedding'      ][embedding      ]),
+            ('clustering'     , self.COMPONENT_OPTIONS['clustering'     ][clustering     ]),
+            ('confidence'     , self.COMPONENT_OPTIONS['confidence'     ][confidence     ]),
         ]
         self.pipeline = Pipeline(pipeline_steps)
 

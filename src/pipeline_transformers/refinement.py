@@ -12,11 +12,9 @@ class EpsilonNNTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        X[X < self.eps] = 1
-        X[X != 1] = 0
+        X = np.array(X < self.eps, dtype=np.float64)
         np.fill_diagonal(X,0)
-        
-
+    
         return X
 
 class kNNTransformer(BaseEstimator, TransformerMixin):
