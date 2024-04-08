@@ -19,7 +19,7 @@ test: venv
 
 # this will only work from a Mac, and if the shell script is present, pointing to host with the repo instantiated
 remote_test: run_tests_remote.sh
-	caffeinate -is ./run_tests_remote.sh
+	caffeinate -disu ./run_tests_remote.sh
 
 clean:
 	find . -type f -name '*.pyc' -delete
