@@ -2,6 +2,7 @@ import os
 import time
 import json
 import signal
+import numpy as np
 from datetime import datetime
 from importlib import reload
 
@@ -12,6 +13,7 @@ from SECRETS import GMAIL_EMAIL, GMAIL_PASSWORD, EMAIL_RECIPIENTS
 
 import src
 from src.SpectralClustering import SpectralClustering
+from sklearn import metrics
 from sklearn.metrics import cluster
 from src.data_generation import sklearn_make_moons
 
@@ -22,11 +24,13 @@ NUM_REPEATS      = 3
 MAX_TIMEOUT_SECS = 60
 
 # input size/noise/num_clusters
-RAND_SEED       = None
-# INPUT_SIZES     = [x for x in range(100, 3001, 100)]
-INPUT_SIZES     = [x for x in range(100, 500, 100)]
-INPUT_NOISES    = [0.00, 0.05, 0.10, 0.15, 0.2]
-INPUT_NUM_MOONS = [3, 4, 5, 6]
+RAND_SEED            = None
+# INPUT_SIZES        = [x for x in range(100, 3001, 100)]
+INPUT_SIZES          = [x for x in range(100, 500, 100)]
+INPUT_NOISES         = [0.00, 0.05, 0.10, 0.15, 0.2]
+INPUT_NUM_MOONS      = [3, 4, 5, 6]
+REFINEMENT_K_TESTS   = np.linspace(0, 300, 100, dtype=int).tolist()
+REFINEMENT_EPS_TESTS = np.linspace(0, 1, 30).tolist()
 
 # where to store current run results
 RESULTS_DUMP_FOLDER = f'./results/res_{datetime.now().strftime("%Y_%m_%d_T%H_%M_%S")}'
@@ -103,18 +107,22 @@ def binary_moons_data(n_points, noise):
 
 
 # calculate a set of metrics for correctness
-def calc_correctness(pred_labels, ground_truth):
+def calc_correctness(X, pred_labels, ground_truth):
     # TODO: add more measures of correctness
     return {
-        'adjusted_rand_score'         : cluster.adjusted_rand_score(ground_truth, pred_labels),
-        'adjusted_mutual_info_score'  : cluster.adjusted_mutual_info_score(ground_truth, pred_labels),
+        'adjusted_rand_score'         : cluster.adjusted_rand_score         (ground_truth, pred_labels),
+        'adjusted_mutual_info_score'  : cluster.adjusted_mutual_info_score  (ground_truth, pred_labels),
         'normalized_mutual_info_score': cluster.normalized_mutual_info_score(ground_truth, pred_labels),
-        'homogeneity_score'           : cluster.homogeneity_score(ground_truth, pred_labels),
-        'completeness_score'          : cluster.completeness_score(ground_truth, pred_labels),
-        'v_measure_score'             : cluster.v_measure_score(ground_truth, pred_labels),
+        'homogeneity_score'           : cluster.homogeneity_score           (ground_truth, pred_labels),
+        'completeness_score'          : cluster.completeness_score          (ground_truth, pred_labels),
+        'v_measure_score'             : cluster.v_measure_score             (ground_truth, pred_labels),
+        'fowlkes_mallows_score'       : cluster.fowlkes_mallows_score       (ground_truth, pred_labels),
+        'silhouette_score'            : metrics.silhouette_score            (X           , pred_labels),
+        'calinski_harabasz_score'     : metrics.calinski_harabasz_score     (X           , pred_labels),
+        'davies_bouldin_score'        : metrics.davies_bouldin_score        (X           , pred_labels),
     }
 
-def dump_result(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAULT', pred_labels = None, ground_truth = None,):
+def dump_result(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAULT', X = None, pred_labels = None, ground_truth = None,):
     timed_out = time == MAX_TIMEOUT_SECS
     new_entry = {
         'n_points'  : n_points,
@@ -127,7 +135,7 @@ def dump_result(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAUL
     }
 
     if not timed_out:
-        metrics = calc_correctness(pred_labels, ground_truth)
+        metrics = calc_correctness(X, pred_labels, ground_truth)
         new_entry.update(metrics)
 
     with open(RESULTS_DUMP_DOC, 'a') as f:
