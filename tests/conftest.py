@@ -20,8 +20,8 @@ from src.data_generation import sklearn_make_moons
 
 # environment vars for preventing long runtime and repeats
 NUM_REPEATS      = 3
-# MAX_TIMEOUT_SECS = 60 * 60
-MAX_TIMEOUT_SECS = 60
+# NUM_REPEATS      = 5
+MAX_TIMEOUT_SECS = 90
 
 # input size/noise/num_clusters
 RAND_SEED            = None
