@@ -103,6 +103,8 @@ class SpectralClustering(ClusterMixin):
         self.COMPONENT_OPTIONS['refinement']['knn']        = refinement_lib.kNNTransformer(k)
         self.COMPONENT_OPTIONS['refinement']['mutual_knn'] = refinement_lib.MutualKNNTransformer(k)
 
+        self.COMPONENT_OPTIONS['clustering']['k-means'] = clustering_lib.ClusteringTransformer('k-means', num_clusters)
+
 
         # TODO: build out pipeline (instead of if/else statements in fit)
         pipeline_steps = [

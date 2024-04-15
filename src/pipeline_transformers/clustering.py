@@ -7,8 +7,6 @@ class ClusteringTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, method = 'k-means', num_clusters = 2):
         if method != 'k-means':
             raise ValueError(f"Required module parameter has not yet been implemented")
-        if num_clusters != 2:
-            raise ValueError(f"Required module parameter has not yet been implemented")
 
         self.method = method
         self.num_clusters = num_clusters
