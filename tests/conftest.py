@@ -1,46 +1,82 @@
 import os
 import time
-import pytest
+import json
 import signal
-import datetime
+import numpy as np
+from datetime import datetime
+from importlib import reload
+
+import smtplib
+from email.message import EmailMessage
+from email.utils import formataddr
+from SECRETS import GMAIL_EMAIL, GMAIL_PASSWORD, EMAIL_RECIPIENTS
+
+import src
+from src.SpectralClustering import SpectralClustering
+from sklearn import metrics
+from sklearn.metrics import cluster
 from src.data_generation import sklearn_make_moons
+
 
 # environment vars for preventing long runtime and repeats
 NUM_REPEATS      = 3
-MAX_TIMEOUT_SECS = 60 * 60
+# NUM_REPEATS      = 5
+MAX_TIMEOUT_SECS = 90
 
 # input size/noise/num_clusters
-RAND_SEED       = None
-# INPUT_SIZES     = [x for x in range(100, 3001, 100)]
-INPUT_SIZES     = [x for x in range(100, 500, 100)]
-INPUT_NOISES    = [0.00, 0.05, 0.10, 0.15]
-INPUT_NUM_MOONS = [3, 4, 5, 6]
+RAND_SEED            = None
+# INPUT_SIZES        = [x for x in range(100, 3001, 100)]
+INPUT_SIZES          = [x for x in range(100, 500, 100)]
+INPUT_NOISES         = [0.00, 0.05, 0.10, 0.15, 0.2]
+INPUT_NUM_MOONS      = [3, 4, 5, 6]
+REFINEMENT_K_TESTS   = np.linspace(0, 300, 100, dtype=int).tolist()
+REFINEMENT_EPS_TESTS = np.linspace(0, 1, 30).tolist()
 
 # where to store current run results
-RESULTS_DUMP_FOLDER     = f'./results/res_{datetime.datetime.now().strftime("%Y_%m_%d_T%H_%M_%S")}'
-RESULTS_TIMING_DOC      = f'{RESULTS_DUMP_FOLDER}/results_times.csv'
-RESULTS_CORRECTNESS_DOC = f'{RESULTS_DUMP_FOLDER}/results_correctness.csv'
-RESULTS_REPORT_DOC      = f'{RESULTS_DUMP_FOLDER}/report.html'
+RESULTS_DUMP_FOLDER = f'./results/res_{datetime.now().strftime("%Y_%m_%d_T%H_%M_%S")}'
+RESULTS_DUMP_DOC    = f'{RESULTS_DUMP_FOLDER}/results_dump.json'
+RESULTS_REPORT_DOC  = f'{RESULTS_DUMP_FOLDER}/report.html'
 
 # complete set of modules available to test for SpectralClustering
-
-
+PIPELINE_METHODS = {method : options.keys() for (method, options) in SpectralClustering.COMPONENT_OPTIONS.items()}
 
 # setup before a testing session: make sure dump folders exist for results
 def pytest_configure(config):
-    # make sure folders exist
-    os.makedirs(os.path.dirname(RESULTS_TIMING_DOC     ), exist_ok=True)
-    os.makedirs(os.path.dirname(RESULTS_CORRECTNESS_DOC), exist_ok=True)
-
-    # create empty files for both
-    with open(RESULTS_TIMING_DOC,'w') as f:
-        f.write('n_points,noise,variant,method,time\n')
-    with open(RESULTS_CORRECTNESS_DOC,'w') as f:
-        f.write('n_points,noise,variant,method,adjusted_rand_index\n')
+    # reload custom package installation
+    reload(src)
+    
+    # make sure folders exist, create empty dump file
+    os.makedirs(os.path.dirname(RESULTS_DUMP_DOC), exist_ok=True)
+    with open(RESULTS_DUMP_DOC, 'w') as f:
+        f.write('')
 
     # set creation of HTML report
     config.option.htmlpath = f'{RESULTS_DUMP_FOLDER}/report.html'
     config.option.self_contained_html = True
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    Called after whole test run finished, right before
+    returning the exit status to the system.
+    """
+
+    # send an email of results
+    email = EmailMessage()
+    email["From"   ] = formataddr(('PYTEST: Results generator', GMAIL_EMAIL))
+    email["To"     ] = EMAIL_RECIPIENTS
+    email["Subject"] = f'Testing Script: Completed Run'
+    email.set_content(f'Run at: {RESULTS_DUMP_DOC}', subtype="html")
+    with open(RESULTS_DUMP_DOC, "r") as f:
+        email.add_attachment(
+            f.read(),
+            filename = "results_dump.json",
+        )
+    
+    smtp = smtplib.SMTP_SSL("smtp.gmail.com")
+    smtp.login(GMAIL_EMAIL, GMAIL_PASSWORD)
+    smtp.sendmail(GMAIL_EMAIL, EMAIL_RECIPIENTS, email.as_string())
+    smtp.quit()
 
 
 # generic handler to time a function call and capture result
@@ -69,12 +105,39 @@ def binary_moons_data(n_points, noise):
     X, labels = sklearn_make_moons(n_points, noise, RAND_SEED)
     return X, labels
 
-# helper functions: dumping new timing results, correctness etc.
-def dump_time(n_points, noise, time, variant = 'DEFAULT', method = 'DEFAULT'):
-    with open(RESULTS_TIMING_DOC,'a') as f:
-        new_line = f'{n_points},{noise},{variant},{method},{time}\n'
-        f.write(new_line)
-def dump_correctness(n_points, noise, adj_rand_index, variant = 'DEFAULT', method = 'DEFAULT'):
-    with open(RESULTS_CORRECTNESS_DOC,'a') as f:
-        new_line = f'{n_points},{noise},{variant},{method},{adj_rand_index}\n'
-        f.write(new_line)
+
+# calculate a set of metrics for correctness
+def calc_correctness(X, pred_labels, ground_truth):
+    # TODO: add more measures of correctness
+    return {
+        'adjusted_rand_score'         : cluster.adjusted_rand_score         (ground_truth, pred_labels),
+        'adjusted_mutual_info_score'  : cluster.adjusted_mutual_info_score  (ground_truth, pred_labels),
+        'normalized_mutual_info_score': cluster.normalized_mutual_info_score(ground_truth, pred_labels),
+        'homogeneity_score'           : cluster.homogeneity_score           (ground_truth, pred_labels),
+        'completeness_score'          : cluster.completeness_score          (ground_truth, pred_labels),
+        'v_measure_score'             : cluster.v_measure_score             (ground_truth, pred_labels),
+        'fowlkes_mallows_score'       : cluster.fowlkes_mallows_score       (ground_truth, pred_labels),
+        'silhouette_score'            : metrics.silhouette_score            (X           , pred_labels),
+        'calinski_harabasz_score'     : metrics.calinski_harabasz_score     (X           , pred_labels),
+        'davies_bouldin_score'        : metrics.davies_bouldin_score        (X           , pred_labels),
+    }
+
+def dump_result(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAULT', X = None, pred_labels = None, ground_truth = None,):
+    timed_out = time == MAX_TIMEOUT_SECS
+    new_entry = {
+        'n_points'  : n_points,
+        'noise'     : noise,
+        'experiment': experiment,
+        'variant'   : variant,
+        'time'      : time,
+        'timed_out' : "True" if timed_out else "False",
+        'log_time'  : datetime.now()
+    }
+
+    if not timed_out:
+        metrics = calc_correctness(X, pred_labels, ground_truth)
+        new_entry.update(metrics)
+
+    with open(RESULTS_DUMP_DOC, 'a') as f:
+        entry_json = json.dumps(new_entry, sort_keys=True, default=str)
+        f.write(f'{entry_json}\n')

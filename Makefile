@@ -15,10 +15,17 @@ $(VENV)/bin/activate: requirements.txt
 venv: $(VENV)/bin/activate
 
 test: venv
-	cd tests && ../$(VENV)/bin/python3 -m pytest
+	cd tests && ../$(VENV)/bin/python3 -m pytest -vv
+
+# this will only work from a Mac, and if the shell script is present, pointing to host with the repo instantiated
+remote_test: run_tests_remote.sh
+	caffeinate -disu ./run_tests_remote.sh
 
 clean:
 	find . -type f -name '*.pyc' -delete
 	rm -rf __pycache__
 
-.PHONY: all venv run clean test
+list:
+	@grep '^[^#[:space:]].*:' Makefile
+
+.PHONY: all venv run clean test remote_test list

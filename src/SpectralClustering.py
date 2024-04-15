@@ -1,60 +1,81 @@
-import numpy as np
-from sklearn.cluster import KMeans
 from sklearn.base import ClusterMixin
 from sklearn.pipeline import Pipeline
-from sklearn.metrics.pairwise import pairwise_distances
 
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
+from src.pipeline_transformers import (
+    NullTransformer                     ,
+    affinity        as affinity_lib     ,
+    refinement      as refinement_lib   ,
+    laplacian       as laplacian_lib    ,
+    decomposition   as decomposition_lib,
+    embedding       as embedding_lib    ,
+    clustering      as clustering_lib   ,
+    confidence      as confidence_lib   ,
+)
 
 class SpectralClustering(ClusterMixin):
 
-    __EPS = 0.3
-    __k_NN = 5
+    DEFAULT_EPS = 0.4
+    DEFAULT_K   = 20
+
     # TODO: add support for providing k/eps for NN graph generation, checking that they are provided when selecting appropriate methods
 
     # supported options for each pipeline component, note declared private to prevent mutation
     # TODO: add in supported methods for each part of pipeline
-    __COMPONENT_OPTIONS = {
+    COMPONENT_OPTIONS = {
+        # data preprocessing: none, standard, min-max
         'standardisation': {
-            # data preprocessing: none, z-score, min-max
-            'none': None,
+            'none'    : NullTransformer.NullTransformer(),
+            'standard': StandardScaler(),
+            'min-max' : MinMaxScaler(),
         },
+        # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
         'affinity': {
-            # similarity metrics to generate affinity matrix: euclidean, manhattan, Gaussian kernel
-            'euclidean': None,
+            'euclidean': affinity_lib.AffinityTransformer('euclidean'),
+            'manhattan': affinity_lib.AffinityTransformer('manhattan'),
         },
+        # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
         'refinement': {
-            # graph refinement/connecting: complete, eps-radius, k-NN, mutual k-NN
-            'eps': None,
+            'eps'        : refinement_lib.EpsilonNNTransformer(DEFAULT_EPS),
+            'knn'        : refinement_lib.kNNTransformer(DEFAULT_K),
+            'mutual_knn' : refinement_lib.MutualKNNTransformer(DEFAULT_K),
+            'none'       : refinement_lib.CompleteTransformer(),
         },
-        'normalisation': {
-            # type of laplacian generated: standard, normalised 
-            'standard': None,
+        # type of laplacian generated: standard, normalised 
+        'laplacian': {
+            'standard'  : laplacian_lib.LaplacianTransformer(normalize = False),
+            'normalised': laplacian_lib.LaplacianTransformer(normalize = True ),
         },
+        # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
         'decomposition': {
-            # method of eigendcomposition: standard dense, sparse improvements, specialised for Fiedler, Fourier transformations
-            'dense': None,
+            'dense'      : decomposition_lib.DecompositionTransformer(method = 'dense'),
+            'dense_eigh' : decomposition_lib.DecompositionTransformer(method = 'dense_eigh'),
+            'sparse'     : decomposition_lib.DecompositionTransformer(method = 'sparse'),
+            'sparse_eigh': decomposition_lib.DecompositionTransformer(method = 'sparse_eigh'),
         },
+        # dimensionality of spectral embedding: single, more than one vec, dynamic selection of num_clusters
         'embedding': {
-            # dimensionality of spectral embedding: single, more than one vec, dynamic selection of num_clusters
-            'single': None,
+            'single': embedding_lib.EmbeddingTransformer(method = 'single'),
         },
+        # method for post-clustering: k-means, agglomerative, DBScan etc.
         'clustering': {
-            # method for post-clustering: k-means, agglomerative, DBScan etc.
-            'k-means': None,
+            'k-means': clustering_lib.ClusteringTransformer(method = 'k-means', num_clusters = 2),
         },
+        # whether to provide measure of confidence: True, False
         'confidence': {
-            # whether to provide measure of confidence: True, False
-            'false': None,
+            'false': NullTransformer.NullTransformer(),
         }
     }
 
-    # TODO: add default values for parameters
+    # TODO: add random state intialisation
     def __init__(
-        self, num_clusters,
-        standardisation = 'none'   , affinity      = 'euclidean',
-        refinement      = 'eps'    , normalisation = 'standard',
-        decomposition   = 'dense'  , embedding     = 'single',
-        clustering      = 'k-means', confidence    = 'false'
+        self                         , num_clusters,
+        standardisation = 'none'     , affinity   = 'euclidean',
+        refinement      = 'eps'      , laplacian  = 'standard',
+        decomposition   = 'dense'    , embedding  = 'single',
+        clustering      = 'k-means'  , confidence = 'false',
+        eps             = DEFAULT_EPS, k          = DEFAULT_K
     ):
         super().__init__()
 
@@ -63,114 +84,46 @@ class SpectralClustering(ClusterMixin):
             ('standardisation', standardisation),
             ('affinity'       , affinity       ),
             ('refinement'     , refinement     ),
-            ('normalisation'  , normalisation  ),
+            ('laplacian'      , laplacian      ),
             ('decomposition'  , decomposition  ),
             ('embedding'      , embedding      ),
             ('clustering'     , clustering     ),
             ('confidence'     , confidence     ),
         ]
         for (var, val) in varname_display_pairs:
-            val_options = SpectralClustering.__COMPONENT_OPTIONS[var].keys()
+            val_options = SpectralClustering.COMPONENT_OPTIONS[var].keys()
             if val not in val_options:
                 raise ValueError(f"Parameter `{var}` must be one of {list(val_options)}")
-
-        # set parameters
-        for (var, val) in varname_display_pairs:
             setattr(self, var, val)
-            # self[''] = val
 
-        # check combination of parameters provided is valid
+        # TODO: check combination of parameters provided is valid
+        # check if using eps refinement, eps param is valid
+        # check if using k refinement, k is good
+        self.COMPONENT_OPTIONS['refinement']['eps']        = refinement_lib.EpsilonNNTransformer(eps)
+        self.COMPONENT_OPTIONS['refinement']['knn']        = refinement_lib.kNNTransformer(k)
+        self.COMPONENT_OPTIONS['refinement']['mutual_knn'] = refinement_lib.MutualKNNTransformer(k)
+
 
         # TODO: build out pipeline (instead of if/else statements in fit)
+        pipeline_steps = [
+            ('standardisation', self.COMPONENT_OPTIONS['standardisation'][standardisation]),
+            ('affinity'       , self.COMPONENT_OPTIONS['affinity'       ][affinity       ]),
+            ('refinement'     , self.COMPONENT_OPTIONS['refinement'     ][refinement     ]),
+            ('laplacian'      , self.COMPONENT_OPTIONS['laplacian'      ][laplacian      ]),
+            ('decomposition'  , self.COMPONENT_OPTIONS['decomposition'  ][decomposition  ]),
+            ('embedding'      , self.COMPONENT_OPTIONS['embedding'      ][embedding      ]),
+            ('clustering'     , self.COMPONENT_OPTIONS['clustering'     ][clustering     ]),
+            ('confidence'     , self.COMPONENT_OPTIONS['confidence'     ][confidence     ]),
+        ]
+        self.pipeline = Pipeline(pipeline_steps)
 
     # TODO: provide 
     def fit(self, X):
         # TODO: check X type, shape of X, save expected shape for future
         shape = X.shape
 
-        # step 1: standardisation
-        if self.standardisation == 'none':
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 2: affinity
-        if self.affinity == 'euclidean':
-            A = pairwise_distances(X, X, 'euclidean')
-            # print(A)
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 3: refinement
-        if self.refinement == 'eps':
-            # TODO: remove hard-coded eps param
-            A[A < 0.4] = 1
-            A[A!= 1] = 0
-            np.fill_diagonal(A,0)
-
-            n = len(X)
-            D = np.zeros((n, n))
-            d = [np.sum(A[row,:]) for row in range(A.shape[0])]
-            np.fill_diagonal(D, d)
-
-            # print('A\n', A, 'D\n', D)
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 4: normalisation
-        if self.normalisation == 'standard':
-            L = D - A
-            # print('L\n', L)
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 5: decomposition
-        if self.decomposition == 'dense':
-            eig_val, eig_vec = np.linalg.eig(L)
-            eig_val = eig_val.real
-            eig_vec = eig_vec.real
-            
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 6: embedding
-        if self.embedding == 'single':
-            eig_val  = eig_val.argsort()
-            z_eigvec = eig_vec[:,eig_val][:,1]
-
-            # print('z\n', z_eigvec)
-            # z_eigvec[z_eigvec >= 0] = 1
-            # z_eigvec[z_eigvec < 0] = 0
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 7: clustering
-        if self.clustering == 'k-means':
-            real_values = z_eigvec.reshape(-1, 1)
-            # train a KMeans Clustering Model on the Fiedler eigenvector
-            kmeans_model = KMeans(n_clusters=2).fit(real_values)
-            self.labels_ = kmeans_model.labels_
-            return self.labels_
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # step 8: confidence
-        if self.confidence == 'false':
-            pass
-        else:
-            raise ValueError(f"Required module parameter has not yet been implemented")
-
-        # run pipeline
-
-        # set results to self.labels_
-
-        return self
+        self.labels_ = self.pipeline.fit_transform(X)
+        return self.labels_
 
     def predict(self, X):
         if self.confidence != 'k-means':
