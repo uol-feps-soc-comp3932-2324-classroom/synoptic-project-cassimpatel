@@ -56,6 +56,8 @@ from src.pipeline_transformers import (
 ```
 See examples of this usage within the analysis notebooks in `prelim_analysis/`. For details on parameters provided, see the source code.
 
+**NOTE**: when running these notebooks, make sure you use the virtual environment you created earlier, so the installation of the source file can be found.
+
 ## Testing & Benchmarking
 
 To run the full testing framework use the following command:

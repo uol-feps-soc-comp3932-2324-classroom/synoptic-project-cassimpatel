@@ -1,1 +1,0 @@
-TODO: (on implementation) add a Python Notebook illustrating use of the developed package, show options for the clustering and how they are different, and the solutions developed with comparison etc.
