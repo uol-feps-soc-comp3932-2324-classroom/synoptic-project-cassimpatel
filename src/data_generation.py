@@ -1,10 +1,9 @@
 import sklearn.datasets
 import numpy as np
 import math
-import random
 
 def sklearn_make_moons(n_points, sigma, rand_state = None):
-    X, labels = sklearn.datasets.make_moons(n_points, shuffle=True, noise=0.1, random_state=rand_state)
+    X, labels = sklearn.datasets.make_moons(n_points, shuffle=True, noise=sigma, random_state=rand_state)
     return X, labels
 
 def make_many_moons(n_points, n_moons, sigma, y_shift = 0.5, rand_state = None):
