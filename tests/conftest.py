@@ -19,14 +19,14 @@ from src.data_generation import sklearn_make_moons
 
 
 # environment vars for preventing long runtime and repeats
-NUM_REPEATS      = 3
-# NUM_REPEATS      = 5
+# NUM_REPEATS      = 3
+NUM_REPEATS      = 5
 MAX_TIMEOUT_SECS = 90
 
 # input size/noise/num_clusters
 RAND_SEED            = None
-# INPUT_SIZES        = [x for x in range(100, 3001, 100)]
-INPUT_SIZES          = [x for x in range(100, 500, 100)]
+INPUT_SIZES        = [x for x in range(100, 3001, 100)]
+# INPUT_SIZES          = [x for x in range(100, 500, 100)]
 INPUT_NOISES         = [0.00, 0.05, 0.10, 0.15, 0.2]
 INPUT_NUM_MOONS      = [3, 4, 5, 6]
 REFINEMENT_K_TESTS   = np.linspace(0, 300, 100, dtype=int).tolist()
@@ -122,7 +122,7 @@ def calc_correctness(X, pred_labels, ground_truth):
         'davies_bouldin_score'        : metrics.davies_bouldin_score        (X           , pred_labels),
     }
 
-def dump_result(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAULT', X = None, pred_labels = None, ground_truth = None,):
+def dump_result(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAULT', X = None, pred_labels = None, ground_truth = None, dataset = None):
     timed_out = time == MAX_TIMEOUT_SECS
     new_entry = {
         'n_points'  : n_points,
@@ -131,7 +131,8 @@ def dump_result(n_points, noise, time, experiment = 'DEFAULT', variant = 'DEFAUL
         'variant'   : variant,
         'time'      : time,
         'timed_out' : "True" if timed_out else "False",
-        'log_time'  : datetime.now()
+        'log_time'  : datetime.now(),
+        'dataset'   : dataset
     }
 
     if not timed_out:
